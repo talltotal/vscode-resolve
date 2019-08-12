@@ -1,0 +1,53 @@
+{
+	"name": "definition-resolve",
+	"displayName": "Definition Resolve",
+	"description": "",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.37.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"keywords": [
+		"go to definition",
+		"webpack",
+		"resolve",
+		"link",
+		"jump to file"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"configuration": {
+			"title": "Definition Resolve",
+			"properties": {
+				"DefinitionResolve.config.file.relative.path": {
+					"type": "string",
+					"description": "Relative path of resolve config file.(support‘js’/‘json’)",
+					"default": ".resolve.conf.js"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "yarn run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "yarn run compile && node ./node_modules/vscode/bin/test"
+	},
+	"dependencies": {
+		"enhanced-resolve": "^4.1.0"
+	},
+	"devDependencies": {
+		"@types/enhanced-resolve": "^3.0.6",
+		"@types/mocha": "^2.2.42",
+		"@types/node": "^10.12.21",
+		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
+		"vscode": "^1.1.28"
+	}
+}
