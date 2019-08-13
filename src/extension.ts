@@ -3,8 +3,10 @@ import * as path from 'path'
 import * as vscode from 'vscode'
 import { ResolverFactory } from 'enhanced-resolve'
 import Resolver = require('enhanced-resolve/lib/Resolver')
+import { AbstractInputFileSystem } from 'enhanced-resolve/lib/common-types'
 
-let configFileName = '.resolve.conf.js'
+let configFileName = getConfigFileName()
+let defaultConfig = getDefaultConfig()
 
 interface WorkspaceFolderItem extends vscode.QuickPickItem {
 	folder: vscode.WorkspaceFolder
@@ -26,29 +28,29 @@ function pickFolder(folders: vscode.WorkspaceFolder[], placeHolder: string): The
 	})
 }
 
-function getWebpack(): Promise<vscode.WorkspaceFolder> {
-	let folders = vscode.workspace.workspaceFolders
-	if (!folders) {
-		vscode.window.showErrorMessage('An VSCode Resolve configuration can only be generated if VS Code is opened on a workspace folder.')
-		return Promise.reject()
-	}
-	let configFolders = folders.filter(folder => {
-		let configFiles = [configFileName]
-		for (let configFile of configFiles) {
-			if (fs.existsSync(path.join(folder.uri.fsPath, configFile))) {
-				return true
-			}
-		}
-		return false
-	})
-	if (configFolders.length === 0) {
-		return Promise.reject()
-	}
-
+function getConfigFolder(): Promise<vscode.WorkspaceFolder> {
 	return new Promise((resolve, reject) => {
+		let folders = vscode.workspace.workspaceFolders
+		if (!folders) {
+			vscode.window.showErrorMessage('An VSCode Resolve configuration can only be generated if VS Code is opened on a workspace folder.')
+			return resolve()
+		}
+		let configFolders = folders.filter(folder => {
+			let configFiles = [configFileName]
+			for (let configFile of configFiles) {
+				if (fs.existsSync(path.join(folder.uri.fsPath, configFile))) {
+					return true
+				}
+			}
+			return false
+		})
+		if (configFolders.length === 0) {
+			configFolders = folders
+		}
+
 		pickFolder(configFolders, 'Select a workspace folder to generate a resolve configuration for').then(async (folder) => {
 			if (!folder) {
-				return reject()
+				return resolve()
 			}
 			resolve(folder)
 		})
@@ -59,12 +61,28 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 	provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.DefinitionLink[]> {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const folder = await getWebpack()
-				if (!folder) {
+				const folder = await getConfigFolder()
+				let config: ResolverFactory.ResolverOption
+				if (folder) {
+					const folderPath = folder.uri.fsPath
+					if (fs.existsSync(path.join(folder.uri.fsPath, configFileName))) {
+						config = require(path.join(folderPath, configFileName))
+					} else {
+						config = defaultConfig || {
+							extensions: ['.js', '.vue', '.json'],
+							alias: {
+								'vue$': 'vue/dist/vue.esm.js',
+								'@': '$root$/src'
+							}
+						}
+						config = JSON.parse(
+							JSON.stringify(config)
+								.replace(/:"\$root\$(.*)"/, `:"${path.resolve(folderPath)}$1"`)
+						)
+					}
+				} else {
 					return reject()
 				}
-				const folderPath = folder.uri.fsPath
-				const config = require(path.join(folderPath, configFileName))
 				const resolver = await getResolver(config)()
 				const range = document.getWordRangeAtPosition(position, /('|"|\()[^'"\s]+('|"|\))/)
 				const request = document.getText(range)
@@ -83,7 +101,6 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 					reject()
 				}
 			} catch (err) {
-				console.error(err)
 				reject(err)
 			}
 		})
@@ -93,14 +110,24 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 export function activate(context: vscode.ExtensionContext) {
 	const registerDefinitionProvider = vscode.languages.registerDefinitionProvider({
 		scheme: 'file',
-		pattern: '**/*.{js,jsx,ts,tsx,vue,less,sass}'
+		pattern: '**/*.{js,jsx,ts,tsx,vue,less,sass,scss,stylus,styl}'
 	}, new DefinitionProvider())
 
 	context.subscriptions.push(registerDefinitionProvider)
 	vscode.workspace.onDidChangeConfiguration(() => {
-		configFileName = vscode.workspace.getConfiguration('DefinitionResolve')
-			.get('config.file.relative.path') || configFileName
+		configFileName = getConfigFileName()
+		defaultConfig = getDefaultConfig()
 	})
+}
+
+function getDefaultConfig (): ResolverFactory.ResolverOption | undefined {
+	return vscode.workspace.getConfiguration('DefinitionResolve')
+		.get('default.resolve')
+}
+
+function getConfigFileName (): string {
+	return vscode.workspace.getConfiguration('DefinitionResolve')
+	.get('config.file.relative.path') || configFileName || '.resolve.conf.js'
 }
 
 function getResolver(options: ResolverFactory.ResolverOption): Function {
@@ -112,7 +139,7 @@ function getResolver(options: ResolverFactory.ResolverOption): Function {
 		} else {
 			return ResolverFactory.createResolver({
 				...options,
-				fileSystem: fs
+				fileSystem: <AbstractInputFileSystem>fs
 			})
 		}
 	}

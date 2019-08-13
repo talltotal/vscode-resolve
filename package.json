@@ -3,8 +3,13 @@
 	"displayName": "Definition Resolve",
 	"description": "",
 	"version": "0.0.1",
+	"publisher": "talltotal",
 	"engines": {
 		"vscode": "^1.37.0"
+	},
+	"repository": {
+	  "type": "git",
+	  "url": "https://github.com/talltotal/vscode-resolve.git"
 	},
 	"categories": [
 		"Programming Languages"
@@ -28,6 +33,17 @@
 					"type": "string",
 					"description": "Relative path of resolve config file.(support‘js’/‘json’)",
 					"default": ".resolve.conf.js"
+				},
+				"DefinitionResolve.default.resolve": {
+					"type": "object",
+					"description": "Default resolve config.($root$ as workspace)",
+					"default": {
+						"extensions": [".js", ".vue", ".json"],
+						"alias": {
+							"vue$": "vue/dist/vue.esm.js",
+							"@": "$root$/src"
+						}
+					}
 				}
 			}
 		}
