@@ -1,12 +1,13 @@
 {
 	"name": "definition-resolve",
 	"displayName": "Definition Resolve",
-	"description": "",
+	"description": "通过配置，处理路径快速跳转。（同 webpack 配置的 resolve）",
 	"version": "0.0.1",
 	"publisher": "talltotal",
 	"engines": {
 		"vscode": "^1.37.0"
 	},
+	"icon": "icon.png",
 	"repository": {
 	  "type": "git",
 	  "url": "https://github.com/talltotal/vscode-resolve.git"
@@ -29,6 +30,11 @@
 		"configuration": {
 			"title": "Definition Resolve",
 			"properties": {
+				"DefinitionResolve.open": {
+					"type": "boolean",
+					"description": "Whether to turn on Definition Resolve.",
+					"default": true
+				},
 				"DefinitionResolve.config.file.relative.path": {
 					"type": "string",
 					"description": "Relative path of resolve config file.(support‘js’/‘json’)",

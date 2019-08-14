@@ -7,6 +7,7 @@ import { AbstractInputFileSystem } from 'enhanced-resolve/lib/common-types'
 
 let configFileName = getConfigFileName()
 let defaultConfig = getDefaultConfig()
+let isOpen = getOpenConfig()
 
 interface WorkspaceFolderItem extends vscode.QuickPickItem {
 	folder: vscode.WorkspaceFolder
@@ -61,6 +62,10 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 	provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.DefinitionLink[]> {
 		return new Promise(async (resolve, reject) => {
 			try {
+				if (!isOpen) {
+					return reject()
+				}
+
 				const folder = await getConfigFolder()
 				let config: ResolverFactory.ResolverOption
 				if (folder) {
@@ -110,14 +115,20 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 export function activate(context: vscode.ExtensionContext) {
 	const registerDefinitionProvider = vscode.languages.registerDefinitionProvider({
 		scheme: 'file',
-		pattern: '**/*.{js,jsx,ts,tsx,vue,less,sass,scss,stylus,styl}'
+		pattern: '**/*.{js,jsx,ts,tsx,vue,less,sass,scss,stylus,styl,wxss,wxml,wxs}'
 	}, new DefinitionProvider())
 
 	context.subscriptions.push(registerDefinitionProvider)
 	vscode.workspace.onDidChangeConfiguration(() => {
 		configFileName = getConfigFileName()
 		defaultConfig = getDefaultConfig()
+		isOpen = getOpenConfig()
 	})
+}
+
+function getOpenConfig (): boolean {
+	return !!vscode.workspace.getConfiguration('DefinitionResolve')
+	.get('open')
 }
 
 function getDefaultConfig (): ResolverFactory.ResolverOption | undefined {
