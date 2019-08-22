@@ -88,12 +88,29 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 				} else {
 					return reject()
 				}
+
 				const resolver = await getResolver(config)()
-				const range = document.getWordRangeAtPosition(position, /('|"|\()[^'"\s]+('|"|\))/)
+				const currFileName = document.fileName
+				const currDir = path.parse(currFileName).dir
+				const regex = (currFileName.endsWith('ss') || currFileName.startsWith('styl'))
+					? /['"(][^'"()\s]+['")]/
+					: /['"][^'"\s]+['"]/
+
+				const range = document.getWordRangeAtPosition(position, regex)
 				const request = document.getText(range)
+				const rangeTxt = request.substr(1, request.length - 2)
 				if (range && request) {
-					resolver.resolve({}, path.parse(document.fileName).dir, request.substr(1, request.length - 2), {}, (err: any, filepath: string) => {
+					resolver.resolve({}, currDir, rangeTxt, {}, (err: any, filepath: string) => {
 						if (err || !filepath) {
+							return reject()
+						}
+						// 过滤默认跳转
+						const pathPath = path.resolve(currDir, rangeTxt)
+						const pathJsPath = pathPath + '.js'
+						if (
+							(filepath === pathPath || filepath === pathJsPath)
+							&& (filepath.endsWith('.js') || path.parse(filepath).ext === path.parse(currFileName).ext)
+						) {
 							return reject()
 						}
 						resolve([{
@@ -105,8 +122,8 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 				} else {
 					reject()
 				}
-			} catch (err) {
-				reject(err)
+			} catch (_) {
+				reject()
 			}
 		})
 	}

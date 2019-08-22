@@ -2,7 +2,7 @@
 	"name": "definition-resolve",
 	"displayName": "Definition Resolve",
 	"description": "通过配置，处理路径快速跳转。（同 webpack 配置的 resolve）",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "talltotal",
 	"engines": {
 		"vscode": "^1.37.0"
