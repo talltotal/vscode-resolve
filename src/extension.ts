@@ -139,7 +139,7 @@ class DefinitionProvider implements vscode.DefinitionProvider {
 export function activate(context: vscode.ExtensionContext): void {
     const registerDefinitionProvider = vscode.languages.registerDefinitionProvider({
         scheme: 'file',
-        pattern: '**/*.{jade,coffee,cjs,ejs,js,jsx,ts,tsx,vue,less,sass,scss,stylus,styl,wxss,wxml,wxs}'
+        pattern: '**/*.{jade,coffee,cjs,mjs,js,jsx,ts,tsx,vue,less,sass,scss,stylus,styl,wxss,wxml,wxs,json}'
     }, new DefinitionProvider())
 
     context.subscriptions.push(registerDefinitionProvider)
