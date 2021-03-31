@@ -8,6 +8,7 @@ import { AbstractInputFileSystem } from 'enhanced-resolve/lib/common-types'
 let configFileName = getConfigFileName()
 let defaultConfig = getDefaultConfig()
 let isOpen = getOpenConfig()
+const packageAlias = getPackageAlias()
 
 interface WorkspaceFolderItem extends vscode.QuickPickItem {
    folder: vscode.WorkspaceFolder
@@ -91,6 +92,10 @@ class DefinitionProvider implements vscode.DefinitionProvider {
                             JSON.stringify(config)
                                 .replace(/:"\$root\$(.*)"/, `:"${path.resolve(folderPath)}$1"`)
                         )
+                        config.alias = {
+                            ...config.alias,
+                            ...(packageAlias || {}),
+                        }
                     }
                 } else {
                     return reject()
@@ -178,4 +183,8 @@ function getResolver(options: ResolverFactory.ResolverOption): () => Resolver {
             })
         }
     }
+}
+
+function getPackageAlias (): object {
+    return {}
 }

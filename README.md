@@ -1,7 +1,7 @@
 # Definition Resolve
 
 跳转至定义，通过配置，处理路径快速跳转。（同 webpack 配置的 resolve）
-> 默认读取工程根目录的`.resolve.conf.js`文件
+> 默认读取工程根目录的`.resolve.conf.js`文件；若没有单独的配置文件，则将‘插件的默认配置’与‘获取根目录下`package.json`的`alias`项’合并
 
 ![](./decs.jpg)
 
