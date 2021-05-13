@@ -89,7 +89,7 @@ class DefinitionProvider implements vscode.DefinitionProvider {
                         }
                         config = JSON.parse(
                             JSON.stringify(config)
-                                .replace(/:"\$root\$(.*)"/, `:"${path.resolve(folderPath)}$1"`)
+                                .replace(/:"\$root\$(.*?)"/g, `:"${path.resolve(folderPath)}$1"`)
                         )
                     }
                 } else {
