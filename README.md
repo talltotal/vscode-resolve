@@ -1,6 +1,6 @@
 # Definition Resolve
 
-通过配置，处理路径快速跳转。（同 webpack 配置的 resolve）
+跳转至定义，通过配置，处理路径快速跳转。（同 webpack 配置的 resolve）
 > 默认读取工程根目录的`.resolve.conf.js`文件
 
 ![](./decs.jpg)
